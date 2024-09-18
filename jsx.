@@ -1,0 +1,61 @@
+// App.js (React Native) - Progress Tracker
+import React, { useEffect, useState } from 'react';
+import { View, Text, Button, StyleSheet } from 'react-native';
+import firebase from './firebaseConfig'; // Assuming you have a firebaseConfig.js file to initialize Firebase
+
+const ProgressTracker = () => {
+  const [totalFootprint, setTotalFootprint] = useState(0);
+
+  useEffect(() => {
+    // Fetch the user's total footprint from Firebase on load
+    const fetchFootprint = async () => {
+      const snapshot = await firebase
+        .database()
+        .ref('users/userId/carbonFootprint')
+        .once('value');
+      setTotalFootprint(snapshot.val() || 0);
+    };
+
+    fetchFootprint();
+  }, []);
+
+  const saveFootprint = async (newFootprint) => {
+    // Update Firebase with the new footprint value
+    const updatedFootprint = totalFootprint + newFootprint;
+    await firebase.database().ref('users/userId').set({ carbonFootprint: updatedFootprint });
+    setTotalFootprint(updatedFootprint);
+  };
+
+  const addNewFootprint = () => {
+    const newFootprint = Math.random() * 10; // Example new footprint calculation (random)
+    saveFootprint(newFootprint);
+  };
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.heading}>Progress Tracker</Text>
+      <Text style={styles.total}>Total Carbon Footprint: {totalFootprint.toFixed(2)} kg CO2</Text>
+      <Button title="Add New Footprint" onPress={addNewFootprint} />
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 16,
+    backgroundColor: '#f0f4c3',
+  },
+  heading: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 16,
+  },
+  total: {
+    fontSize: 18,
+    marginBottom: 16,
+  },
+});
+
+export default ProgressTracker;
+
